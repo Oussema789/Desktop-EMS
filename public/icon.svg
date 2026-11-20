@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="112" fill="#004B8D" />
+  <rect x="44" y="44" width="424" height="424" rx="84" fill="#00396B" fill-opacity="0.45" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="4" />
+  <!-- Spreadsheet / Database card -->
+  <rect x="112" y="108" width="288" height="296" rx="28" fill="#FFFFFF" />
+  <!-- Header bar -->
+  <path d="M112 136C112 120.536 124.536 108 140 108H372C387.464 108 400 120.536 400 136V176H112V136Z" fill="#0B6B38" />
+  <circle cx="152" cy="142" r="10" fill="#6BB33E" />
+  <rect x="178" y="135" width="144" height="14" rx="7" fill="#FFFFFF" fill-opacity="0.92" />
+  <!-- Database rows -->
+  <rect x="142" y="206" width="56" height="24" rx="6" fill="#004B8D" fill-opacity="0.16" />
+  <rect x="212" y="206" width="158" height="24" rx="6" fill="#0F172A" fill-opacity="0.12" />
+  <rect x="142" y="250" width="56" height="24" rx="6" fill="#0B6B38" fill-opacity="0.2" />
+  <rect x="212" y="250" width="158" height="24" rx="6" fill="#0F172A" fill-opacity="0.12" />
+  <rect x="142" y="294" width="56" height="24" rx="6" fill="#004B8D" fill-opacity="0.16" />
+  <rect x="212" y="294" width="118" height="24" rx="6" fill="#0F172A" fill-opacity="0.12" />
+  <!-- Green badge accent -->
+  <circle cx="372" cy="364" r="56" fill="#6BB33E" stroke="#004B8D" stroke-width="10" />
+  <path d="M350 364L365 379L396 346" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
