@@ -18,12 +18,14 @@ import { ProjectsView } from './components/ProjectsView';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { Sidebar } from './components/Sidebar';
 import { SubcontractorsView } from './components/SubcontractorsView';
+import { UniversalImportModal } from './components/UniversalImportModal';
 import { DEFAULT_COUNTRIES, DEFAULT_COUNTRY, DEFAULT_DOMAINS } from './data/seedData';
 import {
   exportExcelOnly,
   exportFullZipBundle,
   importExcelFile,
 } from './excel/excelWorkbook';
+import { ExtractionTarget } from './excel/universalExtractor';
 import {
   getLinkedFolderStatus,
   syncStateToDesktopFolder,
@@ -79,6 +81,8 @@ export default function App() {
 
   const [exportBusy, setExportBusy] = useState(false);
   const [linkedFolderName, setLinkedFolderName] = useState<string | null>(null);
+  const [universalImportTarget, setUniversalImportTarget] =
+    useState<ExtractionTarget | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(
     null
   );
@@ -306,6 +310,79 @@ export default function App() {
     });
   };
 
+  const handleUniversalImportComplete = async (payload: {
+    target: ExtractionTarget;
+    experts?: Expert[];
+    subcontractors?: Subcontractor[];
+    partners?: Partner[];
+    skippedDuplicates: number;
+  }) => {
+    const dupMsg =
+      payload.skippedDuplicates > 0
+        ? ` (${payload.skippedDuplicates} doublon(s) ignoré(s))`
+        : '';
+
+    let nextExperts = state.experts;
+    let nextSubs = state.subcontractors;
+    let nextPartners = state.partners;
+    const summaryParts: string[] = [];
+
+    if (payload.experts && payload.experts.length > 0) {
+      const existingCodes = new Set(state.experts.map((e) => e.code));
+      let counter = state.experts.length + 1;
+      const sanitized = payload.experts.map((exp) => {
+        let code = exp.code;
+        while (existingCodes.has(code)) {
+          code = `EXP-${String(counter++).padStart(3, '0')}`;
+        }
+        existingCodes.add(code);
+        return { ...exp, code };
+      });
+      nextExperts = [...sanitized, ...state.experts];
+      summaryParts.push(`${sanitized.length} expert(s)`);
+    }
+
+    if (payload.subcontractors && payload.subcontractors.length > 0) {
+      const existingCodes = new Set(state.subcontractors.map((s) => s.code));
+      let counter = state.subcontractors.length + 1;
+      const sanitized = payload.subcontractors.map((sub) => {
+        let code = sub.code;
+        while (existingCodes.has(code)) {
+          code = `BE-${String(counter++).padStart(3, '0')}`;
+        }
+        existingCodes.add(code);
+        return { ...sub, code };
+      });
+      nextSubs = [...sanitized, ...state.subcontractors];
+      summaryParts.push(`${sanitized.length} bureau(x) / sous-traitant(s)`);
+    }
+
+    if (payload.partners && payload.partners.length > 0) {
+      const existingCodes = new Set(state.partners.map((p) => p.code));
+      let counter = state.partners.length + 1;
+      const sanitized = payload.partners.map((prt) => {
+        let code = prt.code;
+        while (existingCodes.has(code)) {
+          code = `PRT-${String(counter++).padStart(3, '0')}`;
+        }
+        existingCodes.add(code);
+        return { ...prt, code };
+      });
+      nextPartners = [...sanitized, ...state.partners];
+      summaryParts.push(`${sanitized.length} partenaire(s)`);
+    }
+
+    if (summaryParts.length > 0) {
+      await persistState({
+        experts: nextExperts,
+        subcontractors: nextSubs,
+        partners: nextPartners,
+      });
+      setActiveView(payload.target);
+      showToast(`${summaryParts.join(', ')} extrait(s) et ajouté(s)${dupMsg}.`);
+    }
+  };
+
   const nextExpertCode = `EXP-${String(state.experts.length + 1).padStart(3, '0')}`;
 
   return (
@@ -432,6 +509,7 @@ export default function App() {
                   onPreviewAttachment={(att, expertName) =>
                     setPreviewDoc({ att, expertName })
                   }
+                  onOpenUniversalImport={() => setUniversalImportTarget('experts')}
                 />
               )}
 
@@ -445,6 +523,7 @@ export default function App() {
                   onPreviewAttachment={(att, ownerName) =>
                     setPreviewDoc({ att, expertName: ownerName })
                   }
+                  onOpenUniversalImport={() => setUniversalImportTarget('subcontractors')}
                 />
               )}
 
@@ -463,6 +542,7 @@ export default function App() {
                   onPreviewAttachment={(att, ownerName) =>
                     setPreviewDoc({ att, expertName: ownerName })
                   }
+                  onOpenUniversalImport={() => setUniversalImportTarget('partners')}
                 />
               )}
 
@@ -482,6 +562,7 @@ export default function App() {
                   onExportXlsx={handleExportXlsx}
                   onExportZip={handleExportZip}
                   onImportXlsx={handleImportXlsx}
+                  onOpenUniversalImport={() => setUniversalImportTarget('experts')}
                   exportBusy={exportBusy}
                 />
               )}
@@ -524,6 +605,16 @@ export default function App() {
           attachment={previewDoc.att}
           expertName={previewDoc.expertName}
           onClose={() => setPreviewDoc(null)}
+        />
+      )}
+
+      {/* Universal Word / Excel Table Extractor Modal */}
+      {universalImportTarget && (
+        <UniversalImportModal
+          currentState={state}
+          defaultTarget={universalImportTarget}
+          onImportComplete={handleUniversalImportComplete}
+          onClose={() => setUniversalImportTarget(null)}
         />
       )}
 

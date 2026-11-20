@@ -6,6 +6,7 @@ import {
   FilterX,
   Plus,
   Search,
+  Sparkles,
   Trash2,
   Upload,
   X,
@@ -24,6 +25,7 @@ interface PartnersViewProps {
   onDeletePartner: (id: string) => void;
   onOpenExpertDossier: (expert: Expert) => void;
   onPreviewAttachment: (att: DocumentAttachmentMeta, ownerName: string) => void;
+  onOpenUniversalImport?: () => void;
 }
 
 export function PartnersView({
@@ -35,6 +37,7 @@ export function PartnersView({
   onDeletePartner,
   onOpenExpertDossier,
   onPreviewAttachment,
+  onOpenUniversalImport,
 }: PartnersViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [domainFilter, setDomainFilter] = useState('all');
@@ -112,17 +115,29 @@ export function PartnersView({
             Filtrage par domaine, pays, référence et leurs experts associés.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setEditing(null);
-            setIsModalOpen(true);
-          }}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-gerep-blue rounded-lg hover:bg-gerep-blue-dark transition-colors whitespace-nowrap shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Nouveau Partenaire
-        </button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {onOpenUniversalImport && (
+            <button
+              type="button"
+              onClick={onOpenUniversalImport}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gerep-blue bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-gerep-forest" />
+              Extraire Word / Excel
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(null);
+              setIsModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-gerep-blue rounded-lg hover:bg-gerep-blue-dark transition-colors whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            Nouveau Partenaire
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

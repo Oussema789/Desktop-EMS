@@ -3,6 +3,7 @@ import {
   Download,
   FileArchive,
   FileSpreadsheet,
+  Sparkles,
   Upload,
 } from 'lucide-react';
 import { ChangeEvent, useState } from 'react';
@@ -18,6 +19,7 @@ interface ExcelWorkbookViewProps {
   onExportXlsx: () => void;
   onExportZip: () => void;
   onImportXlsx: (file: File) => Promise<void>;
+  onOpenUniversalImport?: () => void;
   exportBusy: boolean;
 }
 
@@ -34,6 +36,7 @@ export function ExcelWorkbookView({
   onExportXlsx,
   onExportZip,
   onImportXlsx,
+  onOpenUniversalImport,
   exportBusy,
 }: ExcelWorkbookViewProps) {
   const [activeSheet, setActiveSheet] = useState<SheetPreviewTab>('experts');
@@ -169,6 +172,17 @@ export function ExcelWorkbookView({
               className="sr-only"
             />
           </label>
+
+          {onOpenUniversalImport && (
+            <button
+              type="button"
+              onClick={onOpenUniversalImport}
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-gerep-blue bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-gerep-forest" />
+              Extraire un tableau libre (Word .docx / Excel .xlsx)
+            </button>
+          )}
         </div>
       </div>
 

@@ -351,14 +351,14 @@ export function ExpertModal({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Référence
+                  Références (projets réalisés)
                 </label>
                 <input
                   type="text"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  placeholder="Ex: REF-BAD-2024-01"
-                  className="w-full px-3 py-2 text-sm font-mono border border-slate-200 rounded-lg focus:outline-none focus:border-gerep-blue"
+                  placeholder="Ex: REF-BAD-2024-01 ou intitulés projets"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-gerep-blue"
                 />
               </div>
             </div>

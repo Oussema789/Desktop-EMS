@@ -5,6 +5,7 @@ import {
   FilterX,
   Plus,
   Search,
+  Sparkles,
   Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -22,6 +23,7 @@ interface ExpertsViewProps {
   onEditExpert: (expert: Expert) => void;
   onDeleteExpert: (expertId: string) => void;
   onPreviewAttachment: (att: DocumentAttachmentMeta, expertName: string) => void;
+  onOpenUniversalImport?: () => void;
 }
 
 const DOC_CATEGORIES: DocumentCategory[] = ['diplome', 'cv', 'reference', 'certificat'];
@@ -32,6 +34,7 @@ export function ExpertsView({
   onEditExpert,
   onDeleteExpert,
   onPreviewAttachment,
+  onOpenUniversalImport,
 }: ExpertsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [scopeFilter, setScopeFilter] = useState<'all' | ExpertScope>('all');
@@ -66,7 +69,15 @@ export function ExpertsView({
       if (countryFilter !== 'all' && expert.country !== countryFilter) return false;
       if (domainFilter !== 'all' && !expert.domains.includes(domainFilter)) return false;
       if (expert.yearsExperience < minYears) return false;
-      if (refQ && !expert.reference.toLowerCase().includes(refQ)) return false;
+      if (refQ) {
+        const refHaystack = [
+          expert.reference,
+          ...expert.projects.map((p) => `${p.title} ${p.referenceCode ?? ''}`),
+        ]
+          .join(' ')
+          .toLowerCase();
+        if (!refHaystack.includes(refQ)) return false;
+      }
 
       if (q) {
         const haystack = [
@@ -116,14 +127,26 @@ export function ExpertsView({
             Filtrage par portée (International / Nationale), domaines, années d’expérience, référence et pays.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onAddExpert}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-gerep-blue rounded-lg hover:bg-gerep-blue-dark transition-colors whitespace-nowrap shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Nouvel Expert
-        </button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {onOpenUniversalImport && (
+            <button
+              type="button"
+              onClick={onOpenUniversalImport}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gerep-blue bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-gerep-forest" />
+              Extraire Word / Excel
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onAddExpert}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-gerep-blue rounded-lg hover:bg-gerep-blue-dark transition-colors whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            Nouvel Expert
+          </button>
+        </div>
       </div>
 
       {/* Multi-criteria Filter Bar */}
@@ -219,14 +242,14 @@ export function ExpertsView({
           {/* Filter: Reference */}
           <div>
             <label className="block text-[11px] font-medium text-slate-500 mb-1">
-              Référence
+              Références (projets réalisés)
             </label>
             <input
               type="text"
               value={referenceFilter}
               onChange={(e) => setReferenceFilter(e.target.value)}
-              placeholder="Ex: REF-BAD..."
-              className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg focus:outline-none focus:border-gerep-blue"
+              placeholder="Ex: REF-BAD, Assainissement..."
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-gerep-blue"
             />
           </div>
         </div>
@@ -294,7 +317,7 @@ export function ExpertsView({
                   <th className="py-3 px-3 font-semibold whitespace-nowrap">Pays · Nationalité</th>
                   <th className="py-3 px-3 font-semibold whitespace-nowrap">Domaines</th>
                   <th className="py-3 px-3 font-semibold text-right whitespace-nowrap">Exp.</th>
-                  <th className="py-3 px-3 font-semibold whitespace-nowrap">Référence</th>
+                  <th className="py-3 px-3 font-semibold whitespace-nowrap">Références projets</th>
                   <th className="py-3 px-3 font-semibold whitespace-nowrap">Contact &amp; Web</th>
                   <th className="py-3 px-3 font-semibold whitespace-nowrap">Documents joints</th>
                   <th className="py-3 px-3 font-semibold whitespace-nowrap">Projets &amp; Année</th>
@@ -336,7 +359,7 @@ export function ExpertsView({
                       <td className="py-3 px-3 text-right font-mono tabular-nums whitespace-nowrap text-slate-900 font-medium">
                         {expert.yearsExperience} ans
                       </td>
-                      <td className="py-3 px-3 font-mono text-slate-700 whitespace-nowrap">
+                      <td className="py-3 px-3 min-w-[170px] max-w-[250px] text-slate-700 leading-relaxed">
                         {expert.reference || '—'}
                       </td>
                       <td className="py-3 px-3 min-w-[180px] space-y-1">

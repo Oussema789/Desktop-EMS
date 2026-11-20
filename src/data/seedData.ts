@@ -18,6 +18,10 @@ export const DEFAULT_DOMAINS: string[] = [
   'Transport & Mobilité',
   'Agriculture & Développement Rural',
   'Aménagement Urbain',
+  'Gestion des déchets & Économie circulaire',
+  'Géotechnique & Essais de sols',
+  'Topographie, Géodésie & SIG',
+  'Géophysique & Hydrogéologie',
 ];
 
 export const DEFAULT_COUNTRY = 'Tunisie';
