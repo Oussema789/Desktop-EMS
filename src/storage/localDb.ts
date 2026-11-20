@@ -1,8 +1,5 @@
 import JSZip from 'jszip';
-import {
-  IMPORTED_BUREAUX_SUBCONTRACTORS,
-  IMPORTED_EXPERTS,
-} from '../data/importedDirectoryData';
+import { IMPORTED_EXPERTS } from '../data/importedDirectoryData';
 import { buildSamplePdfBlob, INITIAL_DATABASE } from '../data/seedData';
 import { AtlasDatabaseState, DocumentAttachmentMeta } from '../types/database';
 import { buildOrganizedAttachmentRecords, GEREP_DOCS_FOLDER } from './docPaths';
@@ -51,7 +48,6 @@ const EMPTY_DATABASE: AtlasDatabaseState = {
 };
 
 const MIGRATION_FLAG_KEY = 'atlasbase_empty_default_migrated_v1';
-const IMPORT_BATCH_KEY = 'atlasbase_imported_2026_11_experts_bureaux_v1';
 const FIX_EXPERT_REFS_KEY = 'atlasbase_fix_expert_platform_refs_v1';
 
 const SOCIAL_PLATFORM_REFS = new Set([
@@ -71,68 +67,6 @@ function normalizeKey(value: string): string {
     .toLowerCase()
     .replace(/\s+/g, ' ')
     .trim();
-}
-
-function mergeImportedDirectoryRecords(state: AtlasDatabaseState): {
-  state: AtlasDatabaseState;
-  changed: boolean;
-} {
-  let changed = false;
-
-  const existingExpertKeys = new Set(
-    state.experts.map((e) => `${normalizeKey(e.firstName)}|${normalizeKey(e.lastName)}`)
-  );
-  const existingExpertIds = new Set(state.experts.map((e) => e.id));
-  const existingExpertCodes = new Set(state.experts.map((e) => e.code));
-
-  const mergedExperts = [...state.experts];
-  let expCodeCounter = mergedExperts.length + 1;
-  for (const imp of IMPORTED_EXPERTS) {
-    const key = `${normalizeKey(imp.firstName)}|${normalizeKey(imp.lastName)}`;
-    if (existingExpertIds.has(imp.id) || existingExpertKeys.has(key)) continue;
-
-    let code = imp.code;
-    while (existingExpertCodes.has(code)) {
-      code = `EXP-${String(expCodeCounter++).padStart(3, '0')}`;
-    }
-    existingExpertCodes.add(code);
-    existingExpertKeys.add(key);
-    mergedExperts.push({ ...imp, code });
-    changed = true;
-  }
-
-  const existingSubNames = new Set(
-    state.subcontractors.map((s) => normalizeKey(s.name))
-  );
-  const existingSubIds = new Set(state.subcontractors.map((s) => s.id));
-  const existingSubCodes = new Set(state.subcontractors.map((s) => s.code));
-
-  const mergedSubs = [...state.subcontractors];
-  let subCodeCounter = mergedSubs.length + 1;
-  for (const imp of IMPORTED_BUREAUX_SUBCONTRACTORS) {
-    const key = normalizeKey(imp.name);
-    if (existingSubIds.has(imp.id) || existingSubNames.has(key)) continue;
-
-    let code = imp.code;
-    while (existingSubCodes.has(code)) {
-      code = `BE-${String(subCodeCounter++).padStart(3, '0')}`;
-    }
-    existingSubCodes.add(code);
-    existingSubNames.add(key);
-    mergedSubs.push({ ...imp, code });
-    changed = true;
-  }
-
-  return {
-    state: changed
-      ? {
-          ...state,
-          experts: mergedExperts,
-          subcontractors: mergedSubs,
-        }
-      : state,
-    changed,
-  };
 }
 
 function repairExpertPlatformReferences(state: AtlasDatabaseState): {
@@ -258,33 +192,20 @@ export async function loadDatabaseState(): Promise<AtlasDatabaseState> {
   // Proactively request persistent local storage for desktop reliability
   void requestPersistentStorage();
 
-  const applyPendingImportBatch = async (
+  const applyExistingStateRepairs = async (
     baseState: AtlasDatabaseState,
     persistFn: (s: AtlasDatabaseState) => Promise<void>
   ): Promise<AtlasDatabaseState> => {
     let working = baseState;
-    let needsPersist = false;
-
-    if (!localStorage.getItem(IMPORT_BATCH_KEY)) {
-      const { state: merged, changed } = mergeImportedDirectoryRecords(working);
-      localStorage.setItem(IMPORT_BATCH_KEY, '1');
-      if (changed) {
-        working = merged;
-        needsPersist = true;
-      }
-    }
-
     if (!localStorage.getItem(FIX_EXPERT_REFS_KEY)) {
-      const { state: repaired, changed } = repairExpertPlatformReferences(working);
       localStorage.setItem(FIX_EXPERT_REFS_KEY, '1');
-      if (changed) {
-        working = repaired;
-        needsPersist = true;
+      if (working.experts.length > 0) {
+        const { state: repaired, changed } = repairExpertPlatformReferences(working);
+        if (changed) {
+          working = repaired;
+          await persistFn(working);
+        }
       }
-    }
-
-    if (needsPersist) {
-      await persistFn(working);
     }
     return working;
   };
@@ -307,15 +228,14 @@ export async function loadDatabaseState(): Promise<AtlasDatabaseState> {
           current = EMPTY_DATABASE;
         }
       }
-      return await applyPendingImportBatch(current, saveDatabaseState);
+      return await applyExistingStateRepairs(current, saveDatabaseState);
     }
 
+    // Fresh installation: always start 100% blank (vierge)
     localStorage.setItem(MIGRATION_FLAG_KEY, '1');
-    const initial = await applyPendingImportBatch(EMPTY_DATABASE, saveDatabaseState);
-    if (initial === EMPTY_DATABASE) {
-      await saveDatabaseState(EMPTY_DATABASE);
-    }
-    return initial;
+    localStorage.setItem(FIX_EXPERT_REFS_KEY, '1');
+    await saveDatabaseState(EMPTY_DATABASE);
+    return EMPTY_DATABASE;
   } catch {
     const saveLs = async (s: AtlasDatabaseState) => {
       localStorage.setItem(FALLBACK_LS_KEY, JSON.stringify(s));
@@ -331,17 +251,16 @@ export async function loadDatabaseState(): Promise<AtlasDatabaseState> {
             await saveLs(EMPTY_DATABASE);
           }
         }
-        return await applyPendingImportBatch(parsed, saveLs);
+        return await applyExistingStateRepairs(parsed, saveLs);
       } catch {
         // ignore
       }
     }
+    // Fresh installation fallback: always start 100% blank (vierge)
     localStorage.setItem(MIGRATION_FLAG_KEY, '1');
-    const initial = await applyPendingImportBatch(EMPTY_DATABASE, saveLs);
-    if (initial === EMPTY_DATABASE) {
-      await saveLs(EMPTY_DATABASE);
-    }
-    return initial;
+    localStorage.setItem(FIX_EXPERT_REFS_KEY, '1');
+    await saveLs(EMPTY_DATABASE);
+    return EMPTY_DATABASE;
   }
 }
 

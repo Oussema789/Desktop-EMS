@@ -8,6 +8,7 @@ import {
   MonitorCheck,
   RefreshCw,
   ShieldCheck,
+  Trash2,
   Unlink,
   Upload,
   Wifi,
@@ -39,6 +40,7 @@ import { PWAInstallButton } from './PWAInstallButton';
 interface DesktopStorageViewProps {
   state: AtlasDatabaseState;
   onReplaceState: (next: AtlasDatabaseState) => Promise<void>;
+  onResetBlank: () => void;
   onNotify: (text: string, type?: 'success' | 'error') => void;
   onFolderStatusChange?: (folderName: string | null) => void;
 }
@@ -54,6 +56,7 @@ function formatBytes(bytes: number): string {
 export function DesktopStorageView({
   state,
   onReplaceState,
+  onResetBlank,
   onNotify,
   onFolderStatusChange,
 }: DesktopStorageViewProps) {
@@ -253,6 +256,16 @@ export function DesktopStorageView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          {totalRecords > 0 && (
+            <button
+              type="button"
+              onClick={onResetBlank}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-medium text-rose-700 hover:bg-rose-50 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Version vierge (tout vider)
+            </button>
+          )}
           {isInstalled ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-semibold text-gerep-forest">
               <MonitorCheck className="w-4 h-4" />

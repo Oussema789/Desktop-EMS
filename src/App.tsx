@@ -571,6 +571,7 @@ export default function App() {
                 <DesktopStorageView
                   state={state}
                   onReplaceState={persistState}
+                  onResetBlank={handleClearAll}
                   onNotify={showToast}
                   onFolderStatusChange={setLinkedFolderName}
                 />
