@@ -816,7 +816,9 @@ export function UniversalImportModal({
                             ? `${entry.item.firstName} ${entry.item.lastName}`.trim()
                             : entry.item.name;
                         const phone =
-                          entry.kind === 'subcontractors' ? entry.item.phone : '';
+                          entry.kind === 'subcontractors' || entry.kind === 'experts'
+                            ? entry.item.phone ?? ''
+                            : '';
                         const kindLabel =
                           entry.kind === 'experts'
                             ? 'Expert'

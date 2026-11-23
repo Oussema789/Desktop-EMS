@@ -55,7 +55,7 @@ export const EXPERT_FIELD_OPTIONS: Array<{ key: ExpertFieldKey; label: string }>
   { key: 'domains', label: 'Domaines / Spécialité' },
   { key: 'yearsExperience', label: 'Années d’expérience' },
   { key: 'email', label: 'E-mails' },
-  { key: 'phone', label: 'Téléphone (ajouté aux notes)' },
+  { key: 'phone', label: 'Numéro de téléphone' },
   { key: 'website', label: 'Site web / Lien / Hyperlink' },
   { key: 'country', label: 'Pays' },
   { key: 'nationality', label: 'Nationalité' },
@@ -1321,6 +1321,7 @@ export function buildExpertsFromTable(
     let lastName = '';
     let titlePrefix = '';
     let email = '';
+    const phones: string[] = [];
     let website = '';
     let country = '';
     let nationality = '';
@@ -1364,8 +1365,14 @@ export function buildExpertsFromTable(
           break;
         }
         case 'phone': {
-          const phones = extractPhones(cell);
-          noteParts.push(`Tél : ${phones.length > 0 ? phones.join(' / ') : cell}`);
+          const found = extractPhones(cell);
+          if (found.length > 0) {
+            found.forEach((p) => {
+              if (!phones.includes(p)) phones.push(p);
+            });
+          } else if (cell) {
+            phones.push(cell.replace(/\n+/g, ' / ').trim());
+          }
           break;
         }
         case 'website': {
@@ -1439,6 +1446,9 @@ export function buildExpertsFromTable(
       const fallbackEmails = extractEmails(allRowText);
       if (fallbackEmails.length > 0) email = fallbackEmails[0];
     }
+    if (phones.length === 0) {
+      phones.push(...extractPhones(allRowText));
+    }
     if (!website) {
       const firstLink = allRowLinks.find((l) => /^https?:\/\//i.test(l));
       const fallbackUrls = extractUrls(allRowText, firstLink);
@@ -1480,6 +1490,7 @@ export function buildExpertsFromTable(
       yearsExperience,
       reference,
       email,
+      phone: phones.join(' / ') || undefined,
       website,
       attachments: [],
       projects: [],

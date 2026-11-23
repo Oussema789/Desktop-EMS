@@ -357,41 +357,54 @@ export function ExcelWorkbookView({
                   <th className="py-2 px-2.5 border-r border-gerep-blue-dark">J · Email</th>
                   <th className="py-2 px-2.5 border-r border-gerep-blue-dark">K · Site web</th>
                   <th className="py-2 px-2.5 border-r border-gerep-blue-dark">L · Projets &amp; Année</th>
-                  <th className="py-2 px-2.5">M–P · Liens Diplôme / CV / Réf / Certif.</th>
+                  <th className="py-2 px-2.5 border-r border-gerep-blue-dark">
+                    M–P · Diplôme / CV / Réf / Certif.
+                  </th>
+                  <th className="py-2 px-2.5 border-r border-gerep-blue-dark">Q · Téléphone</th>
+                  <th className="py-2 px-2.5">R · Docs administratifs</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {state.experts.map((exp: Expert) => (
-                  <tr key={exp.id} className="hover:bg-slate-50">
-                    <td className="py-2 px-2.5 font-mono border-r border-slate-200">{exp.code}</td>
-                    <td className="py-2 px-2.5 border-r border-slate-200 font-medium">
-                      {exp.lastName}
-                    </td>
-                    <td className="py-2 px-2.5 border-r border-slate-200">{exp.firstName}</td>
-                    <td className="py-2 px-2.5 border-r border-slate-200">{exp.scope}</td>
-                    <td className="py-2 px-2.5 border-r border-slate-200">{exp.nationality}</td>
-                    <td className="py-2 px-2.5 border-r border-slate-200">{exp.country}</td>
-                    <td className="py-2 px-2.5 border-r border-slate-200 max-w-[200px] truncate">
-                      {exp.domains.join(', ')}
-                    </td>
-                    <td className="py-2 px-2.5 border-r border-slate-200 text-right font-mono tabular-nums">
-                      {exp.yearsExperience}
-                    </td>
-                    <td className="py-2 px-2.5 border-r border-slate-200 font-mono">
-                      {exp.reference}
-                    </td>
-                    <td className="py-2 px-2.5 border-r border-slate-200">{exp.email}</td>
-                    <td className="py-2 px-2.5 border-r border-slate-200">{exp.website}</td>
-                    <td className="py-2 px-2.5 border-r border-slate-200 max-w-[220px] truncate">
-                      {exp.projects.map((p) => `${p.title} (${p.completionYear})`).join(' ; ')}
-                    </td>
-                    <td className="py-2 px-2.5 font-mono text-gerep-forest max-w-[220px] truncate">
-                      {exp.attachments[0]
-                        ? buildAttachmentRelativePath(exp, exp.attachments[0])
-                        : '—'}
-                    </td>
-                  </tr>
-                ))}
+                {state.experts.map((exp: Expert) => {
+                  const adminDocs = exp.attachments.filter((a) => a.category === 'administratif');
+                  return (
+                    <tr key={exp.id} className="hover:bg-slate-50">
+                      <td className="py-2 px-2.5 font-mono border-r border-slate-200">{exp.code}</td>
+                      <td className="py-2 px-2.5 border-r border-slate-200 font-medium">
+                        {exp.lastName}
+                      </td>
+                      <td className="py-2 px-2.5 border-r border-slate-200">{exp.firstName}</td>
+                      <td className="py-2 px-2.5 border-r border-slate-200">{exp.scope}</td>
+                      <td className="py-2 px-2.5 border-r border-slate-200">{exp.nationality}</td>
+                      <td className="py-2 px-2.5 border-r border-slate-200">{exp.country}</td>
+                      <td className="py-2 px-2.5 border-r border-slate-200 max-w-[200px] truncate">
+                        {exp.domains.join(', ')}
+                      </td>
+                      <td className="py-2 px-2.5 border-r border-slate-200 text-right font-mono tabular-nums">
+                        {exp.yearsExperience}
+                      </td>
+                      <td className="py-2 px-2.5 border-r border-slate-200 font-mono">
+                        {exp.reference}
+                      </td>
+                      <td className="py-2 px-2.5 border-r border-slate-200">{exp.email}</td>
+                      <td className="py-2 px-2.5 border-r border-slate-200">{exp.website}</td>
+                      <td className="py-2 px-2.5 border-r border-slate-200 max-w-[220px] truncate">
+                        {exp.projects.map((p) => `${p.title} (${p.completionYear})`).join(' ; ')}
+                      </td>
+                      <td className="py-2 px-2.5 font-mono text-gerep-forest border-r border-slate-200 max-w-[220px] truncate">
+                        {exp.attachments[0]
+                          ? buildAttachmentRelativePath(exp, exp.attachments[0])
+                          : '—'}
+                      </td>
+                      <td className="py-2 px-2.5 font-mono border-r border-slate-200 whitespace-nowrap">
+                        {exp.phone || '—'}
+                      </td>
+                      <td className="py-2 px-2.5 font-mono text-gerep-forest max-w-[200px] truncate">
+                        {adminDocs[0] ? buildAttachmentRelativePath(exp, adminDocs[0]) : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

@@ -1,5 +1,6 @@
 import {
   Eye,
+  FileCheck2,
   FilePlus2,
   FolderPlus,
   Plus,
@@ -58,6 +59,7 @@ export function ExpertModal({
   );
   const [reference, setReference] = useState(expert?.reference ?? '');
   const [email, setEmail] = useState(expert?.email ?? '');
+  const [phone, setPhone] = useState(expert?.phone ?? '');
   const [website, setWebsite] = useState(expert?.website ?? '');
   const [notes, setNotes] = useState(expert?.notes ?? '');
   const [attachments, setAttachments] = useState<DocumentAttachmentMeta[]>(
@@ -175,6 +177,7 @@ export function ExpertModal({
       yearsExperience: Math.max(0, Number(yearsExperience) || 0),
       reference: reference.trim(),
       email: email.trim(),
+      phone: phone.trim() || undefined,
       website: website.trim(),
       attachments,
       projects,
@@ -338,6 +341,19 @@ export function ExpertModal({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Numéro de téléphone
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Ex: +216 71 000 000 / +225 07..."
+                  className="w-full px-3 py-2 text-sm font-mono border border-slate-200 rounded-lg focus:outline-none focus:border-gerep-blue"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
                   Site web
                 </label>
                 <input
@@ -349,7 +365,7 @@ export function ExpertModal({
                 />
               </div>
 
-              <div>
+              <div className="md:col-span-3">
                 <label className="block text-xs font-medium text-slate-700 mb-1">
                   Références (projets réalisés)
                 </label>
@@ -499,10 +515,85 @@ export function ExpertModal({
             </div>
           </section>
 
-          {/* Section 3: Projets réalisés ensemble & Année d'achèvement */}
+          {/* Section 3: Gestion des documents administratifs */}
+          <section className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                  <FileCheck2 className="w-4 h-4 text-gerep-blue" />
+                  03. Gestion des documents administratifs
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Passeport, CIN, attestation fiscale, patente, contrat, RIB… archivés localement dans GEREP-EMS-Docs
+                </p>
+              </div>
+              <label className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gerep-forest hover:bg-emerald-800 rounded-lg cursor-pointer transition-colors whitespace-nowrap">
+                <Upload className="w-3.5 h-3.5" />
+                {uploadingCat === 'administratif' ? 'Envoi...' : 'Joindre document administratif'}
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.txt"
+                  onChange={(e) => handleFileUpload('administratif', e)}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+
+            {(() => {
+              const adminItems = attachments.filter((a) => a.category === 'administratif');
+              if (adminItems.length === 0) {
+                return (
+                  <div className="border border-dashed border-slate-200 rounded-lg p-4 bg-slate-50/50 text-xs text-slate-400">
+                    Aucun document administratif enregistré pour cet expert.
+                  </div>
+                );
+              }
+              return (
+                <div className="border border-slate-200 rounded-lg divide-y divide-slate-200 bg-white">
+                  {adminItems.map((att) => (
+                    <div
+                      key={att.id}
+                      className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-xs hover:bg-slate-50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-slate-900 truncate">
+                          {att.fileName}
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-mono tabular-nums">
+                          {(att.fileSize / 1024).toFixed(1)} Ko · Ajouté le{' '}
+                          {att.uploadedAt.slice(0, 10)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => onPreviewAttachment(att, displayName)}
+                          className="p-1.5 text-slate-600 hover:text-gerep-blue hover:bg-sky-50 rounded transition-colors"
+                          title="Aperçu / Télécharger"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(att.id)}
+                          className="p-1.5 text-slate-500 hover:text-rose-700 hover:bg-rose-50 rounded transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </section>
+
+          {/* Section 4: Projets réalisés ensemble & Année d'achèvement */}
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-900 pb-2 border-b border-slate-200">
-              03. Projets réalisés ensemble &amp; Année d’achèvement
+              04. Projets réalisés ensemble &amp; Année d’achèvement
             </h3>
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">

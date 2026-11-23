@@ -38,6 +38,7 @@ export interface Expert {
   yearsExperience: number;
   reference: string;
   email: string;
+  phone?: string;
   website: string;
   attachments: DocumentAttachmentMeta[];
   projects: ExpertProject[];

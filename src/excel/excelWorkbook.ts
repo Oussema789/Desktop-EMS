@@ -346,10 +346,12 @@ export async function buildExcelWorkbook(
     { header: 'Attachement : CV', key: 'cv', width: 28 },
     { header: 'Attachement : Référence', key: 'docRef', width: 28 },
     { header: 'Attachement : Certificats / Attestations', key: 'certificat', width: 32 },
+    { header: 'Téléphone', key: 'phone', width: 20 },
+    { header: 'Attachement : Documents administratifs', key: 'administratif', width: 32 },
   ];
 
-  styleHeaderRow(expSheet.getRow(1), 16);
-  expSheet.autoFilter = 'A1:P1';
+  styleHeaderRow(expSheet.getRow(1), 18);
+  expSheet.autoFilter = 'A1:R1';
 
   state.experts.forEach((expert, idx) => {
     const projectsSummary =
@@ -376,9 +378,11 @@ export async function buildExcelWorkbook(
       formatAttachmentCellText(expert.attachments, 'cv'),
       formatAttachmentCellText(expert.attachments, 'reference'),
       formatAttachmentCellText(expert.attachments, 'certificat'),
+      expert.phone ?? '',
+      formatAttachmentCellText(expert.attachments, 'administratif'),
     ]);
 
-    styleDataRow(row, 16, idx % 2 === 1);
+    styleDataRow(row, 18, idx % 2 === 1);
     row.getCell(8).alignment = { vertical: 'top', horizontal: 'right' };
     row.getCell(8).numFmt = '0';
 
@@ -417,6 +421,7 @@ export async function buildExcelWorkbook(
         { cat: 'cv', col: 14 },
         { cat: 'reference', col: 15 },
         { cat: 'certificat', col: 16 },
+        { cat: 'administratif', col: 18 },
       ];
       for (const item of linkCategories) {
         const matches = expert.attachments.filter((a) => a.category === item.cat);
@@ -865,6 +870,7 @@ export async function importExcelFile(
       const email = cellToString(row.getCell(10).value);
       const website = cellToString(row.getCell(11).value);
       const inlineProjectsText = cellToString(row.getCell(12).value);
+      const phone = cellToString(row.getCell(17).value);
 
       const existing = currentState.experts.find(
         (e) => (code && e.code === code) || (email && e.email.toLowerCase() === email.toLowerCase())
@@ -901,6 +907,7 @@ export async function importExcelFile(
         yearsExperience: yearsExp,
         reference,
         email,
+        phone: phone || existing?.phone,
         website,
         attachments: existing?.attachments ?? [],
         projects: projects.length > 0 ? projects : existing?.projects ?? [],

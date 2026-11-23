@@ -3,6 +3,7 @@ import {
   ExternalLink,
   FileText,
   FilterX,
+  Phone,
   Plus,
   Search,
   Sparkles,
@@ -26,7 +27,13 @@ interface ExpertsViewProps {
   onOpenUniversalImport?: () => void;
 }
 
-const DOC_CATEGORIES: DocumentCategory[] = ['diplome', 'cv', 'reference', 'certificat'];
+const DOC_CATEGORIES: DocumentCategory[] = [
+  'diplome',
+  'cv',
+  'reference',
+  'certificat',
+  'administratif',
+];
 
 export function ExpertsView({
   experts,
@@ -85,6 +92,7 @@ export function ExpertsView({
           expert.lastName,
           expert.firstName,
           expert.email,
+          expert.phone ?? '',
           expert.nationality,
           expert.country,
           expert.reference,
@@ -371,7 +379,13 @@ export function ExpertsView({
                             {expert.email}
                           </a>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          !expert.phone && <span className="text-slate-400">—</span>
+                        )}
+                        {expert.phone && (
+                          <div className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-700">
+                            <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{expert.phone}</span>
+                          </div>
                         )}
                         {expert.website && (
                           <a
@@ -391,14 +405,16 @@ export function ExpertsView({
                           </a>
                         )}
                       </td>
-                      <td className="py-3 px-3 min-w-[220px]">
+                      <td className="py-3 px-3 min-w-[230px]">
                         <div className="grid grid-cols-2 gap-1">
                           {DOC_CATEGORIES.map((cat) => {
                             const matches = expert.attachments.filter((a) => a.category === cat);
                             const label =
                               cat === 'certificat'
                                 ? 'Certif.'
-                                : DOCUMENT_CATEGORY_LABELS[cat];
+                                : cat === 'administratif'
+                                  ? 'Admin.'
+                                  : DOCUMENT_CATEGORY_LABELS[cat];
                             if (matches.length === 0) {
                               return (
                                 <span
